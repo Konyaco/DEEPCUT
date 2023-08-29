@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -57,7 +58,7 @@ fun SearchBox(modifier: Modifier = Modifier) {
     Box(
         modifier
             .height(40.dp)
-            .background(Color.Black.copy(0.07f))
+            .background(MaterialTheme.colorScheme.onSurface.copy(0.07f))
     ) {
         IconButton(modifier = Modifier
             .align(Alignment.CenterEnd)
