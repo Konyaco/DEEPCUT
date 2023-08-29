@@ -30,7 +30,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun Bar(modifier: Modifier = Modifier, onClick: () -> Unit) {
+fun ControllerBar(modifier: Modifier = Modifier, onClick: () -> Unit) {
     val backgroundColor = Color(0xFF476187)
     val contentColor = if (backgroundColor.luminance() > 0.5f) {
         Color.Black
@@ -91,5 +91,5 @@ fun Bar(modifier: Modifier = Modifier, onClick: () -> Unit) {
 @Composable
 @Preview
 private fun Preview() {
-    Bar {}
+    ControllerBar {}
 }

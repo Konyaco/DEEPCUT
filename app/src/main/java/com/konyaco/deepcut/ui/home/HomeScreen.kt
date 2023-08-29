@@ -60,7 +60,7 @@ fun HomeScreen() {
                 .align(Alignment.BottomCenter)
                 .padding(horizontal = 16.dp, vertical = 16.dp)
         ) {
-            Bar(onClick = {})
+            ControllerBar(onClick = {})
         }
     }
 }
