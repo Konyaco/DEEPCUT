@@ -38,10 +38,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.konyaco.deepcut.viewmodel.AppViewModel
 
 @Composable
 @Preview(showBackground = true)
-fun HomeScreen() {
+fun HomeScreen(viewModel: AppViewModel = AppViewModel()) {
     Box(Modifier.fillMaxSize()) {
         Column(
             Modifier
@@ -60,7 +61,9 @@ fun HomeScreen() {
                 .align(Alignment.BottomCenter)
                 .padding(horizontal = 16.dp, vertical = 16.dp)
         ) {
-            ControllerBar(onClick = {})
+            ControllerBar(onClick = {
+                viewModel.showPlayScreen()
+            })
         }
     }
 }

@@ -38,7 +38,7 @@ fun ControllerBar(modifier: Modifier = Modifier, onClick: () -> Unit) {
         Color.White
     }
     Surface(
-        Modifier
+        modifier
             .fillMaxWidth()
             .height(64.dp)
             .clickable(onClick = onClick),
