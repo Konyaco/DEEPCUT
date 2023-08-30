@@ -72,6 +72,8 @@ dependencies {
     implementation(libs.media3.ui)
     implementation(libs.media3.session)
 
+    implementation(libs.coil)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.espresso.core)

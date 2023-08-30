@@ -2,6 +2,7 @@ package com.konyaco.deepcut.ui.play
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,19 +14,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
-import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -40,17 +41,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.clipRect
-import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.konyaco.deepcut.viewmodel.AppViewModel
 import kotlin.random.Random
 
@@ -59,11 +60,10 @@ val backgroundColor = Color(0xFF5F88A6)
 //    val contentColor = if (backgroundColor.luminance() > 0.5f) Color.Black else Color.White
 val contentColor = Color.Black
 
-@Preview(showBackground = true)
 @Composable
-fun PlayScreen(viewModel: AppViewModel = AppViewModel()) {
+fun PlayScreen(viewModel: AppViewModel) {
     Surface(Modifier.fillMaxSize(), color = backgroundColor, contentColor = contentColor) {
-        Column {
+        Column(Modifier.systemBarsPadding()) {
             Row(
                 modifier = Modifier.padding(start = 24.dp, end = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -101,15 +101,22 @@ fun PlayScreen(viewModel: AppViewModel = AppViewModel()) {
                         .fillMaxWidth()
                         .aspectRatio(1f)
                         .background(Color(0xFF3C3C3C))
-                )
+                ) {
+                    AsyncImage(
+                        modifier = Modifier.fillMaxSize(),
+                        model = viewModel.artworkImage.value,
+                        contentDescription = "Cover",
+                        contentScale = ContentScale.Crop
+                    )
+                }
                 Text(
-                    "Sacrifice",
+                    text = viewModel.title.value,
                     fontSize = 48.sp,
                     fontWeight = FontWeight.Black,
                     color = LocalContentColor.current.copy(0.87f)
                 )
                 Text(
-                    "The Weeknd",
+                    text = viewModel.artist.value,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = LocalContentColor.current.copy(0.72f)
@@ -125,7 +132,13 @@ fun PlayScreen(viewModel: AppViewModel = AppViewModel()) {
             Controllers(
                 Modifier
                     .padding(horizontal = 24.dp, vertical = 16.dp)
-                    .fillMaxWidth()
+                    .fillMaxWidth(),
+                viewModel.isPlaying.value,
+                onPlayPauseClick = {
+                    viewModel.togglePlay()
+                },
+                onPreviousClick = { viewModel.previous() },
+                onNextClick = { viewModel.next() }
             )
         }
     }
@@ -207,7 +220,13 @@ fun DrawScope.drawProgress(color: Color, progress: Float) {
 }
 
 @Composable
-fun Controllers(modifier: Modifier) {
+fun Controllers(
+    modifier: Modifier,
+    isPlaying: Boolean,
+    onPlayPauseClick: () -> Unit,
+    onPreviousClick: () -> Unit,
+    onNextClick: () -> Unit,
+) {
     Column {
         Row(
             modifier = modifier.weight(1f),
@@ -220,7 +239,7 @@ fun Controllers(modifier: Modifier) {
             IconButton(onClick = { /*TODO*/ }) {
                 Icon(imageVector = Icons.Default.Shuffle, "Shuffle")
             }
-            PauseButton()
+            PlayPauseButton(isPlaying, onPlayPauseClick)
             IconButton(onClick = { /*TODO*/ }) {
                 Icon(imageVector = Icons.Outlined.Timer, "Timer")
             }
@@ -228,45 +247,58 @@ fun Controllers(modifier: Modifier) {
                 Icon(imageVector = Icons.Default.List, "List")
             }
         }
-        Row (
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
-        ){
+        ) {
             // Lyric
-            PreviousButton()
+            PreviousButton(onPreviousClick)
             Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(text = "‘Cause life is still worth living", fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                Text(
+                    text = "‘Cause life is still worth living",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium
+                )
                 Text(text = "因为人生仍然值得", fontSize = 14.sp, fontWeight = FontWeight.Bold)
             }
-            NextButton()
+            NextButton(onNextClick)
         }
     }
 }
 
 @Composable
-fun PauseButton() {
+fun PlayPauseButton(isPlaying: Boolean, onClick: () -> Unit) {
     Box(
         Modifier
             .size(72.dp)
             .clip(CircleShape)
-            .background(LocalContentColor.current),
+            .background(LocalContentColor.current)
+            .clickable(onClick = onClick),
         Alignment.Center
     ) {
-        Icon(
+        // TODO: Use animated vector
+        if (isPlaying) Icon(
             imageVector = Icons.Default.Pause,
             contentDescription = "Pause",
+            tint = backgroundColor
+        ) else Icon(
+            imageVector = Icons.Default.PlayArrow,
+            contentDescription = "Play",
             tint = backgroundColor
         )
     }
 }
 
 @Composable
-fun PreviousButton() {
+fun PreviousButton(onClick: () -> Unit) {
     Box(
         Modifier
             .size(64.dp)
             .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.onSurface.copy(0.07f)),
+            .background(MaterialTheme.colorScheme.onSurface.copy(0.07f))
+            .clickable(onClick = onClick),
         Alignment.Center
     ) {
         Icon(
@@ -277,12 +309,13 @@ fun PreviousButton() {
 }
 
 @Composable
-fun NextButton() {
+fun NextButton(onClick: () -> Unit) {
     Box(
         Modifier
             .size(64.dp)
             .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.onSurface.copy(0.07f)),
+            .background(MaterialTheme.colorScheme.onSurface.copy(0.07f))
+            .clickable(onClick = onClick),
         Alignment.Center
     ) {
         Icon(

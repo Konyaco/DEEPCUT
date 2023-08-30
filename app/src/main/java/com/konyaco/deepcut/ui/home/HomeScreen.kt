@@ -41,8 +41,7 @@ import androidx.compose.ui.unit.dp
 import com.konyaco.deepcut.viewmodel.AppViewModel
 
 @Composable
-@Preview(showBackground = true)
-fun HomeScreen(viewModel: AppViewModel = AppViewModel()) {
+fun HomeScreen(viewModel: AppViewModel) {
     Box(Modifier.fillMaxSize()) {
         Column(
             Modifier
