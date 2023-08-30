@@ -67,6 +67,11 @@ dependencies {
     implementation(libs.material.icons.extended)
     implementation(libs.accompanist.systemuicontroller)
 
+    implementation(libs.media3)
+    implementation(libs.media3.exoplayer)
+    implementation(libs.media3.ui)
+    implementation(libs.media3.session)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.espresso.core)
