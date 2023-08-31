@@ -1,5 +1,6 @@
 package com.konyaco.deepcut.ui.play
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -48,7 +49,6 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -62,6 +62,11 @@ val contentColor = Color.Black
 
 @Composable
 fun PlayScreen(viewModel: AppViewModel) {
+    BackHandler {
+        if (viewModel.showPlayScreen.value) {
+            viewModel.hidePlayScreen()
+        }
+    }
     Surface(Modifier.fillMaxSize(), color = backgroundColor, contentColor = contentColor) {
         Column(Modifier.systemBarsPadding()) {
             Row(
@@ -127,7 +132,10 @@ fun PlayScreen(viewModel: AppViewModel) {
                 Modifier
                     .padding(horizontal = 24.dp, vertical = 16.dp)
                     .fillMaxWidth()
-                    .clip(RectangleShape)
+                    .clip(RectangleShape),
+                viewModel.progress.value,
+                viewModel.currentPositionStr.value,
+                viewModel.durationStr.value
             )
             Controllers(
                 Modifier
@@ -145,11 +153,15 @@ fun PlayScreen(viewModel: AppViewModel) {
 }
 
 @Composable
-fun ProgressBar(modifier: Modifier = Modifier) {
+fun ProgressBar(
+    modifier: Modifier = Modifier,
+    progress: Float,
+    currentPosition: String,
+    duration: String
+) {
     val volumes = remember { generateVolumes() }
     val backgroundColor = Color(0xFF5F88A6)
     val contentColor = Color.Black.copy(0.87f)
-    val progress = 0.5f
     Column(modifier) {
         Canvas(
             modifier = Modifier
@@ -166,14 +178,14 @@ fun ProgressBar(modifier: Modifier = Modifier) {
         }
         Row {
             Text(
-                text = "1:13",
+                text = currentPosition,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
                 color = LocalContentColor.current.copy(0.87f)
             )
             Spacer(Modifier.weight(1f))
             Text(
-                text = "-1:13",
+                text = duration,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
                 color = LocalContentColor.current.copy(0.87f)

@@ -36,8 +36,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import com.konyaco.deepcut.repository.model.Music
 import com.konyaco.deepcut.viewmodel.AppViewModel
 
 @Composable
@@ -53,7 +54,7 @@ fun HomeScreen(viewModel: AppViewModel) {
         ) {
             Header()
             Spacer(Modifier.height(16.dp))
-            Content()
+            Content(viewModel)
         }
         Box(
             Modifier
@@ -68,11 +69,13 @@ fun HomeScreen(viewModel: AppViewModel) {
 }
 
 @Composable
-fun Content() {
+fun Content(viewModel: AppViewModel) {
     Column(Modifier.fillMaxWidth()) {
         RecentlyListen()
         Spacer(Modifier.height(16.dp))
-        AllSongs()
+        AllSongs(viewModel.musics.value, onSelect = {
+            viewModel.selectMusic(it)
+        })
     }
 }
 
@@ -152,7 +155,7 @@ fun RowSongItem() {
 }
 
 @Composable
-fun AllSongs() {
+fun AllSongs(music: List<Music>, onSelect: (Music) -> Unit) {
     Column {
         Row(
             modifier = Modifier
@@ -174,8 +177,10 @@ fun AllSongs() {
                 .padding(vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            repeat(30) {
-                ColumnSongItem()
+            music.forEachIndexed { index, music ->
+                ColumnSongItem(music.title, music.artistName, onSelect = {
+                    onSelect(music)
+                })
             }
         }
     }
@@ -196,13 +201,11 @@ fun FilterOption() {
 }
 
 @Composable
-fun ColumnSongItem() {
+fun ColumnSongItem(title: String, artist: String, onSelect: () -> Unit) {
     Row(
         modifier = Modifier
             .height(56.dp)
-            .clickable {
-                // TODO: Click
-            }
+            .clickable(onClick = onSelect)
             .padding(start = 16.dp, end = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -210,19 +213,23 @@ fun ColumnSongItem() {
             Modifier
                 .size(40.dp)
                 .background(Color(0XFF6D5B44))
-        )
+        ) {
+            /*cover?.let {
+                AsyncImage(model = it, contentDescription = "Cover")
+            }*/
+        }
         Column(
             Modifier
                 .padding(horizontal = 10.dp)
                 .weight(1f)
         ) {
             Text(
-                "Lorem Ipsum", color = LocalContentColor.current.copy(0.87f),
+                title, color = LocalContentColor.current.copy(0.87f),
                 style = MaterialTheme.typography.titleMedium,
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                "Lorem Ipsum", color = LocalContentColor.current.copy(0.6f),
+                artist, color = LocalContentColor.current.copy(0.6f),
                 style = MaterialTheme.typography.bodyMedium,
                 overflow = TextOverflow.Ellipsis
             )
