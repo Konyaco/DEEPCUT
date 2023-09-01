@@ -45,7 +45,7 @@ import com.konyaco.deepcut.viewmodel.AppViewModel
 
 @Composable
 fun HomeScreen(viewModel: AppViewModel) {
-    val BottomPadding = if (
+    val bottomPadding = if (
         WindowInsets.systemBars.asPaddingValues().calculateBottomPadding() == 0.dp
         ) {
         16.dp
@@ -68,7 +68,7 @@ fun HomeScreen(viewModel: AppViewModel) {
         Box(
             Modifier
                 .align(Alignment.BottomCenter)
-                .padding(horizontal = 16.dp, vertical = BottomPadding)
+                .padding(horizontal = 16.dp, vertical = bottomPadding)
         ) {
             ControllerBar(
                 onClick = { viewModel.showPlayScreen() },
