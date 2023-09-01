@@ -59,6 +59,7 @@ class AppViewModel @Inject constructor(
 
     val title = mutableStateOf("")
     val artist = mutableStateOf("")
+    val album = mutableStateOf("")
     val progress = mutableStateOf(0f)
     val artworkUri = mutableStateOf<Uri?>(null)
     val artworkImage = mutableStateOf<ByteArray?>(null)
@@ -85,7 +86,9 @@ class AppViewModel @Inject constructor(
                 val (buffered, currentPosition) = withContext(Dispatchers.Main) {
                     (mediaController.bufferedPosition to mediaController.currentPosition)
                 }
-                progress.value = (currentPosition.toFloat() / buffered).coerceIn(0f, 1f)
+                if (buffered == 0L) progress.value = 0f
+                else progress.value = (currentPosition.toFloat() / buffered).coerceIn(0f, 1f)
+
                 durationStr.value = formatDuration(buffered)
                 currentPositionStr.value = formatDuration(currentPosition)
                 delay(100)
@@ -97,10 +100,11 @@ class AppViewModel @Inject constructor(
             }
 
             override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
-                title.value = mediaMetadata.title?.toString() ?: "Unknown"
-                artist.value = mediaMetadata.artist?.toString() ?: "Unknown"
+                title.value = mediaMetadata.title?.toString() ?: ""
+                artist.value = mediaMetadata.artist?.toString() ?: ""
                 artworkUri.value = mediaMetadata.artworkUri
                 artworkImage.value = mediaMetadata.artworkData
+                album.value = mediaMetadata.albumTitle?.toString() ?: ""
                 duration.value = currentSong?.duration ?: 0L
             }
 

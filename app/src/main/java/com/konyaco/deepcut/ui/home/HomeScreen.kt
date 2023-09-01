@@ -37,7 +37,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
 import com.konyaco.deepcut.repository.model.Music
 import com.konyaco.deepcut.viewmodel.AppViewModel
 
@@ -61,9 +60,16 @@ fun HomeScreen(viewModel: AppViewModel) {
                 .align(Alignment.BottomCenter)
                 .padding(horizontal = 16.dp, vertical = 16.dp)
         ) {
-            ControllerBar(onClick = {
-                viewModel.showPlayScreen()
-            })
+            ControllerBar(
+                onClick = { viewModel.showPlayScreen() },
+                title = viewModel.title.value,
+                artist = viewModel.artist.value,
+                progress = viewModel.progress.value,
+                isPlaying = viewModel.isPlaying.value,
+                onPlayPauseClick = { viewModel.togglePlay() },
+                onNextClick = { viewModel.next() },
+                cover = viewModel.artworkImage.value
+            )
         }
     }
 }
