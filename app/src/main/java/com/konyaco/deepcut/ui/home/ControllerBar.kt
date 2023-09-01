@@ -1,6 +1,8 @@
 package com.konyaco.deepcut.ui.home
 
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -41,24 +43,20 @@ fun ControllerBar(
     onClick: () -> Unit,
     title: String,
     cover: ByteArray?,
+    backgroundColor: Color,
     artist: String,
     progress: Float,
     isPlaying: Boolean,
     onPlayPauseClick: () -> Unit,
     onNextClick: () -> Unit
 ) {
-    val backgroundColor = Color(0xFF476187)
-    val contentColor = if (backgroundColor.luminance() > 0.5f) {
-        Color.Black
-    } else {
-        Color.White
-    }
+    val contentColor = if (backgroundColor.luminance() > 0.5f) Color.Black else Color.White
     Surface(
         modifier
             .fillMaxWidth()
             .height(64.dp)
             .clickable(onClick = onClick),
-        color = backgroundColor,
+        color = animateColorAsState(backgroundColor, tween(1000), label = "Background Color").value,
         contentColor = contentColor,
         shadowElevation = 2.dp
     ) {
@@ -88,7 +86,8 @@ fun ControllerBar(
                     else Box(
                         Modifier
                             .fillMaxSize()
-                            .background(Color(0xFF242424)))
+                            .background(Color(0xFF242424))
+                    )
                 }
 
                 Spacer(modifier = Modifier.width(10.dp))
@@ -133,6 +132,7 @@ private fun Preview() {
         isPlaying = true,
         onPlayPauseClick = {},
         onNextClick = {},
-        cover = null
+        cover = null,
+        backgroundColor = Color(0xFF5F88A6)
     )
 }

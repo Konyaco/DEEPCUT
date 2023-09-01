@@ -68,7 +68,8 @@ fun HomeScreen(viewModel: AppViewModel) {
                 isPlaying = viewModel.isPlaying.value,
                 onPlayPauseClick = { viewModel.togglePlay() },
                 onNextClick = { viewModel.next() },
-                cover = viewModel.artworkImage.value
+                cover = viewModel.artworkImage.value,
+                backgroundColor = viewModel.backgroundColor.value?.let {Color(it)} ?: Color(0xFF5F88A6)
             )
         }
     }

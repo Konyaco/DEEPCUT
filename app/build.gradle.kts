@@ -58,6 +58,8 @@ dependencies {
     implementation(libs.lifecycle.runtime.ktx)
     implementation(libs.activity.compose)
 
+    // For dynamic color
+    implementation(libs.mdc)
 
     implementation(platform(libs.compose.bom))
     implementation(libs.ui)

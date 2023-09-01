@@ -2,6 +2,8 @@ package com.konyaco.deepcut.ui.play
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -40,7 +42,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,6 +56,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -61,10 +66,7 @@ import coil.compose.AsyncImage
 import com.konyaco.deepcut.viewmodel.AppViewModel
 import kotlin.random.Random
 
-val backgroundColor = Color(0xFF5F88A6)
-
-//    val contentColor = if (backgroundColor.luminance() > 0.5f) Color.Black else Color.White
-val contentColor = Color.Black
+val LocalBackgroundColor = compositionLocalOf<Color> { error("Not provided") }
 
 @Composable
 fun PlayScreen(viewModel: AppViewModel) {
@@ -73,101 +75,117 @@ fun PlayScreen(viewModel: AppViewModel) {
             viewModel.hidePlayScreen()
         }
     }
-    Surface(Modifier.fillMaxSize(), color = backgroundColor, contentColor = contentColor) {
-        Column(Modifier.systemBarsPadding()) {
-            Row(
-                modifier = Modifier.padding(start = 24.dp, end = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+    val backgroundColor = viewModel.backgroundColor.value?.let { Color(it) } ?: Color(0xFF5F88A6)
+    val contentColor = if (backgroundColor.luminance() > 0.5f) Color.Black else Color.White
+
+    CompositionLocalProvider(LocalBackgroundColor provides backgroundColor) {
+        Surface(
+            Modifier.fillMaxSize(),
+            color = animateColorAsState(
+                backgroundColor,
+                label = "Background Color",
+                animationSpec = tween(1000)
+            ).value,
+            contentColor = contentColor
+        ) {
+            Column(Modifier.systemBarsPadding()) {
                 Row(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.padding(start = 24.dp, end = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            modifier = Modifier.alignByBaseline(),
+                            text = "来自专辑",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            modifier = Modifier.alignByBaseline(),
+                            text = viewModel.album.value,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Black,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                    IconButton(onClick = { /*TODO*/ }) {
+                        Icon(imageVector = Icons.Default.MoreVert, contentDescription = "More")
+                    }
+                    IconButton(onClick = { viewModel.hidePlayScreen() }) {
+                        Icon(
+                            imageVector = Icons.Default.ExpandMore,
+                            contentDescription = "Collapse"
+                        )
+                    }
+                }
+
+                Column(Modifier.padding(horizontal = 24.dp)) {
+                    Crossfade(
+                        modifier = Modifier
+                            .padding(vertical = 24.dp)
+                            .fillMaxWidth()
+                            .aspectRatio(1f),
+                        targetState = viewModel.artworkImage.value,
+                        label = "Cover"
+                    ) {
+                        if (it != null) AsyncImage(
+                            modifier = Modifier.fillMaxSize(),
+                            model = it,
+                            contentDescription = "Cover",
+                            contentScale = ContentScale.Crop
+                        )
+                        else Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color(0xFF3C3C3C))
+                        )
+                    }
                     Text(
-                        modifier = Modifier.alignByBaseline(),
-                        text = "来自专辑",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        modifier = Modifier.alignByBaseline(),
-                        text = viewModel.album.value,
-                        fontSize = 14.sp,
+                        text = viewModel.title.value,
+                        fontSize = 48.sp,
                         fontWeight = FontWeight.Black,
+                        color = LocalContentColor.current.copy(0.87f),
+                        lineHeight = 56.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = viewModel.artist.value,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = LocalContentColor.current.copy(0.72f),
+                        lineHeight = 30.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
-                IconButton(onClick = { /*TODO*/ }) {
-                    Icon(imageVector = Icons.Default.MoreVert, contentDescription = "More")
-                }
-                IconButton(onClick = { viewModel.hidePlayScreen() }) {
-                    Icon(imageVector = Icons.Default.ExpandMore, contentDescription = "Collapse")
-                }
-            }
 
-            Column(Modifier.padding(horizontal = 24.dp)) {
-                Crossfade(
-                    modifier = Modifier
-                        .padding(vertical = 24.dp)
+                ProgressBar(
+                    Modifier
+                        .padding(horizontal = 24.dp, vertical = 16.dp)
                         .fillMaxWidth()
-                        .aspectRatio(1f),
-                    targetState = viewModel.artworkImage.value,
-                    label = "Cover"
-                ) {
-                    if (it != null) AsyncImage(
-                        modifier = Modifier.fillMaxSize(),
-                        model = it,
-                        contentDescription = "Cover",
-                        contentScale = ContentScale.Crop
-                    )
-                    else Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color(0xFF3C3C3C))
-                    )
-                }
-                Text(
-                    text = viewModel.title.value,
-                    fontSize = 48.sp,
-                    fontWeight = FontWeight.Black,
-                    color = LocalContentColor.current.copy(0.87f),
-                    lineHeight = 56.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                        .clip(RectangleShape),
+                    viewModel.progress.value,
+                    viewModel.currentPositionStr.value,
+                    viewModel.durationStr.value
                 )
-                Text(
-                    text = viewModel.artist.value,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = LocalContentColor.current.copy(0.72f),
-                    lineHeight = 30.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                Controllers(
+                    Modifier
+                        .padding(horizontal = 24.dp, vertical = 16.dp)
+                        .fillMaxWidth(),
+                    viewModel.isPlaying.value,
+                    onPlayPauseClick = {
+                        viewModel.togglePlay()
+                    },
+                    onPreviousClick = { viewModel.previous() },
+                    onNextClick = { viewModel.next() }
                 )
             }
-
-            ProgressBar(
-                Modifier
-                    .padding(horizontal = 24.dp, vertical = 16.dp)
-                    .fillMaxWidth()
-                    .clip(RectangleShape),
-                viewModel.progress.value,
-                viewModel.currentPositionStr.value,
-                viewModel.durationStr.value
-            )
-            Controllers(
-                Modifier
-                    .padding(horizontal = 24.dp, vertical = 16.dp)
-                    .fillMaxWidth(),
-                viewModel.isPlaying.value,
-                onPlayPauseClick = {
-                    viewModel.togglePlay()
-                },
-                onPreviousClick = { viewModel.previous() },
-                onNextClick = { viewModel.next() }
-            )
         }
     }
 }
@@ -261,7 +279,9 @@ fun Controllers(
 ) {
     Column {
         Row(
-            modifier = modifier.wrapContentHeight().weight(1f),
+            modifier = modifier
+                .wrapContentHeight()
+                .weight(1f),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceAround
         ) {
@@ -314,11 +334,11 @@ fun PlayPauseButton(isPlaying: Boolean, onClick: () -> Unit) {
         if (isPlaying) Icon(
             imageVector = Icons.Default.Pause,
             contentDescription = "Pause",
-            tint = backgroundColor
+            tint = LocalBackgroundColor.current
         ) else Icon(
             imageVector = Icons.Default.PlayArrow,
             contentDescription = "Play",
-            tint = backgroundColor
+            tint = LocalBackgroundColor.current
         )
     }
 }

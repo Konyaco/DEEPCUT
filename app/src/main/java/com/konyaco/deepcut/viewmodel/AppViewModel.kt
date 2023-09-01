@@ -1,28 +1,23 @@
 package com.konyaco.deepcut.viewmodel
 
+import android.annotation.SuppressLint
 import android.content.ContentUris
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.ImageDecoder
-import android.media.session.PlaybackState
+import android.graphics.BitmapFactory
 import android.net.Uri
-import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.core.graphics.decodeBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
-import androidx.media3.common.Metadata
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.exoplayer.MetadataRetriever
 import androidx.media3.exoplayer.source.TrackGroupArray
 import androidx.media3.session.MediaController
+import com.google.android.material.color.DynamicColorsOptions
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
 import com.konyaco.deepcut.repository.MusicRepository
@@ -34,11 +29,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
 import java.util.concurrent.Executors
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.time.Duration.Companion.microseconds
+import kotlin.concurrent.thread
+import kotlin.system.measureTimeMillis
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 
@@ -50,6 +45,7 @@ class AppViewModel @Inject constructor(
     private val context: Context,
     private val musicRepository: MusicRepository
 ) : ViewModel() {
+    val backgroundColor = mutableStateOf<Int?>(null)
     val showPlayScreen = mutableStateOf(false)
     val isPlaying = mutableStateOf(false)
 
@@ -106,6 +102,7 @@ class AppViewModel @Inject constructor(
                 artworkImage.value = mediaMetadata.artworkData
                 album.value = mediaMetadata.albumTitle?.toString() ?: "Loading"
                 duration.value = currentSong?.duration ?: 0L
+                calcThemeColor(mediaMetadata.artworkData)
             }
 
             override fun onTimelineChanged(timeline: Timeline, reason: Int) {
@@ -198,5 +195,27 @@ class AppViewModel @Inject constructor(
     private fun Music.toMediaItem(): MediaItem {
         val uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
         return MediaItem.fromUri(uri)
+    }
+
+    @Volatile
+    private var calcThread: Thread? = null
+        @Synchronized get
+        @Synchronized set
+
+    @SuppressLint("RestrictedApi")
+    private fun calcThemeColor(bitmap: ByteArray?) {
+        if (bitmap != null) {
+            calcThread?.interrupt()
+            thread {
+                val time = measureTimeMillis {
+                    val bitmap = BitmapFactory.decodeByteArray(bitmap, 0, bitmap.size)
+                    val options = DynamicColorsOptions.Builder()
+                        .setContentBasedSource(bitmap)
+                        .build()
+                    backgroundColor.value = options.contentBasedSeedColor
+                }
+                Log.d(TAG, "calc theme color spends ${time}ms")
+            }
+        }
     }
 }
