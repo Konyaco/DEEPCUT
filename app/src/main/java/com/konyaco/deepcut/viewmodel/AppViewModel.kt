@@ -100,11 +100,11 @@ class AppViewModel @Inject constructor(
             }
 
             override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
-                title.value = mediaMetadata.title?.toString() ?: ""
-                artist.value = mediaMetadata.artist?.toString() ?: ""
+                title.value = mediaMetadata.title?.toString() ?: "Loading"
+                artist.value = mediaMetadata.artist?.toString() ?: "Loading"
                 artworkUri.value = mediaMetadata.artworkUri
                 artworkImage.value = mediaMetadata.artworkData
-                album.value = mediaMetadata.albumTitle?.toString() ?: ""
+                album.value = mediaMetadata.albumTitle?.toString() ?: "Loading"
                 duration.value = currentSong?.duration ?: 0L
             }
 
