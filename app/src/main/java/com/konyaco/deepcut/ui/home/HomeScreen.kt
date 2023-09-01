@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -15,6 +17,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
@@ -42,6 +45,13 @@ import com.konyaco.deepcut.viewmodel.AppViewModel
 
 @Composable
 fun HomeScreen(viewModel: AppViewModel) {
+    val BottomPadding = if (
+        WindowInsets.systemBars.asPaddingValues().calculateBottomPadding() == 0.dp
+        ) {
+        16.dp
+    } else {
+        WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
+    }
     Box(Modifier.fillMaxSize()) {
         Column(
             Modifier
@@ -58,7 +68,7 @@ fun HomeScreen(viewModel: AppViewModel) {
         Box(
             Modifier
                 .align(Alignment.BottomCenter)
-                .padding(horizontal = 16.dp, vertical = 16.dp)
+                .padding(horizontal = 16.dp, vertical = BottomPadding)
         ) {
             ControllerBar(
                 onClick = { viewModel.showPlayScreen() },

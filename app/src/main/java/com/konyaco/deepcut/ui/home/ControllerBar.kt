@@ -106,7 +106,7 @@ fun ControllerBar(
                     )
                 }
 
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(8.dp))
                 IconButton(onClick = onPlayPauseClick) {
                     if (isPlaying) Icon(
                         imageVector = Icons.Default.Pause,
@@ -114,11 +114,11 @@ fun ControllerBar(
                     )
                     else Icon(imageVector = Icons.Default.PlayArrow, contentDescription = "Play")
                 }
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(8.dp))
                 IconButton(onClick = onNextClick) {
                     Icon(imageVector = Icons.Default.SkipNext, contentDescription = "Next")
                 }
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(8.dp))
             }
         }
     }
@@ -128,7 +128,7 @@ fun ControllerBar(
 @Preview
 private fun Preview() {
     ControllerBar(
-        onClick = {}, title = "Sacrifice", artist = "The weeknd", progress = 0.6f,
+        onClick = {}, title = "Sacrifice", artist = "the Weeknd", progress = 0.6f,
         isPlaying = true,
         onPlayPauseClick = {},
         onNextClick = {},
