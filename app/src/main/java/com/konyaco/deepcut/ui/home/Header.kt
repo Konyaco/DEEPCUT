@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
@@ -16,23 +14,26 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.konyaco.deepcut.R
 
 @Preview(showBackground = true)
 @Composable
 fun Header() {
+    val locale = Locale.current
+    val titleResourceId = when ( locale.toLanguageTag() ) {
+        "zh-Hans-CN" -> R.drawable.ic_deepcut_title_zh_cn_32dp
+        "en-US" -> R.drawable.ic_deepcut_title_en_32dp
+
+        else -> R.drawable.ic_deepcut_title_en_32dp
+    }
     Surface(
         Modifier
             .fillMaxWidth(),
@@ -52,18 +53,14 @@ fun Header() {
                 painter = painterResource(id = R.drawable.ic_deepcut_32dp),
                 contentDescription = "Logo"
             )
+
             Icon(
                 modifier = Modifier
                     .padding(start = 6.dp, end = 16.dp),
-                painter = painterResource(id = R.drawable.ic_deepcut_title_zh_cn_32dp),
+                painter = painterResource(id = titleResourceId),
                 contentDescription = "Logo"
             )
-//            Text(
-//                modifier = Modifier.padding(start = 12.dp, end = 16.dp),
-//                text = "深切",
-//                fontSize = 24.sp,
-//                fontWeight = FontWeight.ExtraBold
-//            )
+
             SearchBox(Modifier.weight(1f))
             IconButton(modifier = Modifier.padding(start = 4.dp), onClick = { /*TODO*/ }) {
                 Icon(imageVector = Icons.Default.MoreVert, contentDescription = "More")
