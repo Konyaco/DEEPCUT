@@ -30,6 +30,9 @@ fun Header() {
     val locale = Locale.current
     val titleResourceId = when ( locale.toLanguageTag() ) {
         "zh-Hans-CN" -> R.drawable.ic_deepcut_title_zh_cn_32dp
+        "zh-Hant-TW" -> R.drawable.ic_deepcut_title_zh_tw_hk_32dp
+        "zh-Hant-HK" -> R.drawable.ic_deepcut_title_zh_tw_hk_32dp
+        "zh-Hant-MO" -> R.drawable.ic_deepcut_title_zh_tw_hk_32dp
         "en-US" -> R.drawable.ic_deepcut_title_en_32dp
 
         else -> R.drawable.ic_deepcut_title_en_32dp
