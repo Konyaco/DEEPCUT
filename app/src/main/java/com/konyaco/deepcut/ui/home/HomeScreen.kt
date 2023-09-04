@@ -55,15 +55,19 @@ fun HomeScreen(viewModel: AppViewModel) {
     Box(Modifier.fillMaxSize()) {
         Column(
             Modifier
-                .verticalScroll(rememberScrollState())
                 .fillMaxSize()
-                .statusBarsPadding()
-                .navigationBarsPadding()
-                .padding(bottom = 60.dp)
         ) {
             Header()
-            Spacer(Modifier.height(16.dp))
-            Content(viewModel)
+            Column(
+                Modifier
+                    .verticalScroll(rememberScrollState())
+                    .fillMaxSize()
+                    .navigationBarsPadding()
+                    .padding(bottom = 60.dp)
+            ) {
+                //Spacer(Modifier.height(8.dp))
+                Content(viewModel)
+            }
         }
         Box(
             Modifier
@@ -192,7 +196,7 @@ fun AllSongs(music: List<Music>, onSelect: (Music) -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
             music.forEachIndexed { index, music ->
                 ColumnSongItem(music.title, music.artistName, onSelect = {
@@ -209,7 +213,7 @@ fun FilterOption() {
         Modifier
             .background(MaterialTheme.colorScheme.onSurface.copy(0.07f))
             .clickable { }
-            .padding(16.dp, 8.dp, 8.dp, 8.dp)
+            .padding(16.dp, 10.dp, 12.dp, 10.dp)
     ) {
         Text("按名称")
         Spacer(Modifier.width(8.dp))
@@ -221,9 +225,8 @@ fun FilterOption() {
 fun ColumnSongItem(title: String, artist: String, onSelect: () -> Unit) {
     Row(
         modifier = Modifier
-            .height(56.dp)
             .clickable(onClick = onSelect)
-            .padding(start = 16.dp, end = 8.dp),
+            .padding(start = 16.dp, end = 8.dp, top = 10.dp, bottom = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(

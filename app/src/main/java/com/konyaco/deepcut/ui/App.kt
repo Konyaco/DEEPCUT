@@ -21,7 +21,7 @@ import com.konyaco.deepcut.viewmodel.AppViewModel
 fun App(viewModel: AppViewModel) {
     DEEPCUTTheme {
         // A surface container using the 'background' color from the theme
-        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
             Box(
                 modifier = Modifier.fillMaxSize(),
             ) {
