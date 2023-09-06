@@ -16,6 +16,8 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
+import com.google.common.collect.BiMap
+import com.google.common.collect.HashBiMap
 import com.konyaco.deepcut.repository.MusicRepository
 import com.konyaco.deepcut.repository.model.Music
 import com.konyaco.deepcut.util.ColorUtil
@@ -62,9 +64,7 @@ class AppViewModel @Inject constructor(
     private lateinit var updateProgressJob: Job
 
     private var currentMusicItem: MusicItem? = null
-
-    private val _musics = HashMap<MusicItem, MediaItem>()
-    private val _mediaItemMusics = HashMap<MediaItem, MusicItem>()
+    private val _musics: BiMap<MusicItem, MediaItem> = HashBiMap.create<MusicItem, MediaItem>()
 
     private fun formatDuration(durationMs: Long): String {
         if (durationMs == 0L) return "0:00"
@@ -102,8 +102,7 @@ class AppViewModel @Inject constructor(
             }
 
             override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
-                this@AppViewModel.currentMusicItem =
-                    _mediaItemMusics[mediaController.currentMediaItem]
+                this@AppViewModel.currentMusicItem = _musics.inverse()[mediaController.currentMediaItem]
                 title.value = mediaMetadata.title?.toString() ?: "Loading"
                 artist.value = mediaMetadata.artist?.toString() ?: "Loading"
                 artworkUri.value = mediaMetadata.artworkUri
@@ -154,6 +153,7 @@ class AppViewModel @Inject constructor(
                 val mediaItem = it.toMediaItem()
                 val musicItem = MusicItem(it, mutableStateOf(null), mutableStateOf(null))
                 launch(Dispatchers.Default) {
+                    // TODO: API < 29
                     val bitmap =
                         context.contentResolver.loadThumbnail(contentUri, Size(128, 128), null)
                     val color = ColorUtil.calcThemeColor(bitmap)
@@ -161,8 +161,9 @@ class AppViewModel @Inject constructor(
                     musicItem.artworkImage.value = bitmap.asImageBitmap()
                 }
                 musics.add(musicItem)
-                this@AppViewModel._musics[musicItem] = mediaItem
-                this@AppViewModel._mediaItemMusics[mediaItem] = musicItem
+                _musics[musicItem] = mediaItem
+//                this@AppViewModel._musics[musicItem] = mediaItem
+//                this@AppViewModel._mediaItemMusics[mediaItem] = musicItem
 //
                 withContext(Dispatchers.Main) { mediaController.addMediaItem(mediaItem) }
             }
