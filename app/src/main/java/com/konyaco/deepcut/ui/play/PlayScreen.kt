@@ -198,8 +198,10 @@ fun ProgressBar(
     duration: String
 ) {
     val volumes = remember { generateVolumes() }
-    val backgroundColor = Color(0xFF5F88A6)
-    val contentColor = Color.Black.copy(0.87f)
+    val backgroundColor = LocalBackgroundColor.current
+    val contentColor = if (backgroundColor.luminance() > 0.5f) Color.Black.copy(0.87f)
+    else Color.White.copy(0.87f)
+    
     Column(modifier) {
         Canvas(
             modifier = Modifier
