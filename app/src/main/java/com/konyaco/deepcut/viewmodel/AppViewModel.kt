@@ -1,27 +1,24 @@
 package com.konyaco.deepcut.viewmodel
 
-import android.annotation.SuppressLint
 import android.content.ContentUris
 import android.content.Context
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.MediaStore
-import android.util.Log
+import android.util.Size
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
-import androidx.media3.common.Timeline
-import androidx.media3.exoplayer.MetadataRetriever
-import androidx.media3.exoplayer.source.TrackGroupArray
 import androidx.media3.session.MediaController
-import com.google.android.material.color.DynamicColorsOptions
-import com.google.common.util.concurrent.FutureCallback
-import com.google.common.util.concurrent.Futures
 import com.konyaco.deepcut.repository.MusicRepository
 import com.konyaco.deepcut.repository.model.Music
+import com.konyaco.deepcut.util.ColorUtil
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -29,11 +26,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.concurrent.Executors
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.concurrent.thread
-import kotlin.system.measureTimeMillis
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 
@@ -50,8 +45,8 @@ class AppViewModel @Inject constructor(
     val isPlaying = mutableStateOf(false)
 
     val isLoading = mutableStateOf(true)
-    val musics = mutableStateOf(emptyList<Music>())
-    private var _musics = emptySet<Music>()
+
+    val musics = mutableStateOf(emptyList<MusicItem>())
 
     val title = mutableStateOf("")
     val artist = mutableStateOf("")
@@ -63,17 +58,27 @@ class AppViewModel @Inject constructor(
     val currentPositionStr = mutableStateOf("0:00")
     val durationStr = mutableStateOf("0:00")
 
-    private var currentSong: Music? = null
-
     private lateinit var mediaController: MediaController
     private lateinit var updateProgressJob: Job
 
+    private var currentMusicItem: MusicItem? = null
+
+    private val _musics = HashMap<MusicItem, MediaItem>()
+    private val _mediaItemMusics = HashMap<MediaItem, MusicItem>()
+
     private fun formatDuration(durationMs: Long): String {
+        if (durationMs == 0L) return "0:00"
         val duration = durationMs.milliseconds
         val m = duration.inWholeMinutes
         val s = (duration - m.minutes).inWholeSeconds
         return "${m}:${"%02d".format(s)}"
     }
+
+    data class MusicItem(
+        val music: Music,
+        var artworkImage: MutableState<ImageBitmap?>,
+        var themeColor: MutableState<Color?>
+    )
 
     fun setMediaController(mediaController: MediaController) {
         this.mediaController = mediaController
@@ -82,10 +87,11 @@ class AppViewModel @Inject constructor(
                 val (buffered, currentPosition) = withContext(Dispatchers.Main) {
                     (mediaController.bufferedPosition to mediaController.currentPosition)
                 }
-                if (buffered == 0L) progress.value = 0f
-                else progress.value = (currentPosition.toFloat() / buffered).coerceIn(0f, 1f)
+                val duration = currentMusicItem?.music?.duration ?: 0L
+                if (duration == 0L) progress.value = 0f
+                else progress.value = (currentPosition.toFloat() / duration).coerceIn(0f, 1f)
 
-                durationStr.value = formatDuration(buffered)
+                durationStr.value = formatDuration(duration)
                 currentPositionStr.value = formatDuration(currentPosition)
                 delay(100)
             }
@@ -96,17 +102,16 @@ class AppViewModel @Inject constructor(
             }
 
             override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
+                this@AppViewModel.currentMusicItem =
+                    _mediaItemMusics[mediaController.currentMediaItem]
                 title.value = mediaMetadata.title?.toString() ?: "Loading"
                 artist.value = mediaMetadata.artist?.toString() ?: "Loading"
                 artworkUri.value = mediaMetadata.artworkUri
                 artworkImage.value = mediaMetadata.artworkData
                 album.value = mediaMetadata.albumTitle?.toString() ?: "Loading"
-                duration.value = currentSong?.duration ?: 0L
-                calcThemeColor(mediaMetadata.artworkData)
-            }
+                duration.value = currentMusicItem?.music?.duration ?: 0L
 
-            override fun onTimelineChanged(timeline: Timeline, reason: Int) {
-                Log.d(TAG, "onTimelineChanged: $timeline")
+                calcThemeColor(mediaMetadata.artworkData)
             }
         })
     }
@@ -137,55 +142,42 @@ class AppViewModel @Inject constructor(
         mediaController.seekToPreviousMediaItem()
     }
 
-    private fun getMetadata(uri: Uri) {
-        println(MediaItem.fromUri(uri).mediaMetadata.artworkUri)
-    }
-
-    private val executor = Executors.newSingleThreadExecutor()
-
-    @androidx.media3.common.util.UnstableApi
     fun initMusics() {
         viewModelScope.launch(Dispatchers.IO) {
             isLoading.value = true
 
             val songs = musicRepository.getAllMusics()
-            musics.value = songs
-            _musics = songs.toSet()
-
+            val musics = mutableListOf<MusicItem>()
             songs.forEach {
+                val contentUri: Uri =
+                    ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, it.id)
                 val mediaItem = it.toMediaItem()
+                val musicItem = MusicItem(it, mutableStateOf(null), mutableStateOf(null))
+                launch(Dispatchers.Default) {
+                    val bitmap =
+                        context.contentResolver.loadThumbnail(contentUri, Size(128, 128), null)
+                    val color = ColorUtil.calcThemeColor(bitmap)
+                    musicItem.themeColor.value = Color(color)
+                    musicItem.artworkImage.value = bitmap.asImageBitmap()
+                }
+                musics.add(musicItem)
+                this@AppViewModel._musics[musicItem] = mediaItem
+                this@AppViewModel._mediaItemMusics[mediaItem] = musicItem
+//
                 withContext(Dispatchers.Main) { mediaController.addMediaItem(mediaItem) }
-                val future = MetadataRetriever.retrieveMetadata(context, mediaItem)
-                Futures.addCallback(future, object : FutureCallback<TrackGroupArray> {
-                    override fun onSuccess(result: TrackGroupArray) {
-                        Log.d(TAG, "onSuccess: $result")
-                        val metadata = mediaItem.mediaMetadata
-
-                        Log.d(
-                            TAG,
-                            "MediaItem: ${it.title} ${metadata.title} ${metadata.artworkUri}"
-                        )
-                    }
-
-                    override fun onFailure(t: Throwable) {
-
-                    }
-                }, executor)
-
-            }
-            withContext(Dispatchers.Main) {
-                mediaController.prepare()
             }
 
+            this@AppViewModel.musics.value = musics
             isLoading.value = false
+            withContext(Dispatchers.Main) { mediaController.prepare() }
         }
     }
 
-    fun selectMusic(music: Music) {
+    fun selectMusic(music: MusicItem) {
         viewModelScope.launch {
             withContext(Dispatchers.Main) {
                 mediaController.clearMediaItems()
-                mediaController.addMediaItem(music.toMediaItem())
+                mediaController.addMediaItem(_musics[music]!!)
                 mediaController.prepare()
                 mediaController.play()
             }
@@ -202,19 +194,11 @@ class AppViewModel @Inject constructor(
         @Synchronized get
         @Synchronized set
 
-    @SuppressLint("RestrictedApi")
     private fun calcThemeColor(bitmap: ByteArray?) {
         if (bitmap != null) {
             calcThread?.interrupt()
-            thread {
-                val time = measureTimeMillis {
-                    val bitmap = BitmapFactory.decodeByteArray(bitmap, 0, bitmap.size)
-                    val options = DynamicColorsOptions.Builder()
-                        .setContentBasedSource(bitmap)
-                        .build()
-                    backgroundColor.value = options.contentBasedSeedColor
-                }
-                Log.d(TAG, "calc theme color spends ${time}ms")
+            calcThread = thread {
+                backgroundColor.value = ColorUtil.calcThemeColor(bitmap)
             }
         }
     }

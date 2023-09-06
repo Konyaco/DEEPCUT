@@ -1,9 +1,7 @@
 package com.konyaco.deepcut.repository
 
-import android.content.ContentUris
 import android.content.Context
 import android.database.Cursor
-import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import androidx.core.database.getStringOrNull

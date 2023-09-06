@@ -1,5 +1,6 @@
 package com.konyaco.deepcut.ui.home
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -38,8 +39,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.konyaco.deepcut.repository.model.Music
 import com.konyaco.deepcut.viewmodel.AppViewModel
 
@@ -94,7 +97,7 @@ fun Content(viewModel: AppViewModel) {
     Column(Modifier.fillMaxWidth()) {
         RecentlyListen()
         Spacer(Modifier.height(16.dp))
-        AllSongs(viewModel.musics.value, onSelect = {
+        AllSongs(viewModel.musics.component1(), onSelect = {
             viewModel.selectMusic(it)
         })
     }
@@ -176,7 +179,7 @@ fun RowSongItem() {
 }
 
 @Composable
-fun AllSongs(music: List<Music>, onSelect: (Music) -> Unit) {
+fun AllSongs(music: List<AppViewModel.MusicItem>, onSelect: (AppViewModel.MusicItem) -> Unit) {
     Column {
         Row(
             modifier = Modifier
@@ -199,7 +202,7 @@ fun AllSongs(music: List<Music>, onSelect: (Music) -> Unit) {
             verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
             music.forEachIndexed { index, music ->
-                ColumnSongItem(music.title, music.artistName, onSelect = {
+                ColumnSongItem(music.music.title, music.music.artistName, music.artworkImage.value, onSelect = {
                     onSelect(music)
                 })
             }
@@ -222,7 +225,7 @@ fun FilterOption() {
 }
 
 @Composable
-fun ColumnSongItem(title: String, artist: String, onSelect: () -> Unit) {
+fun ColumnSongItem(title: String, artist: String, cover: ImageBitmap?, onSelect: () -> Unit) {
     Row(
         modifier = Modifier
             .clickable(onClick = onSelect)
@@ -234,9 +237,9 @@ fun ColumnSongItem(title: String, artist: String, onSelect: () -> Unit) {
                 .size(40.dp)
                 .background(Color(0XFF6D5B44))
         ) {
-            /*cover?.let {
-                AsyncImage(model = it, contentDescription = "Cover")
-            }*/
+            cover?.let {
+                Image(bitmap = it, contentDescription = "Cover")
+            }
         }
         Column(
             Modifier
