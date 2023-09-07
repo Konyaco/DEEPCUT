@@ -1,5 +1,6 @@
 package com.konyaco.deepcut.ui.home
 
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -14,33 +15,24 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.konyaco.deepcut.R
 
-@Preview(showBackground = true)
 @Composable
-fun Header() {
-    val locale = Locale.current
-    val titleResourceId = when ( locale.toLanguageTag() ) {
-        "zh-Hans-CN" -> R.drawable.ic_deepcut_title_zh_cn_32dp
-        "zh-Hant-TW" -> R.drawable.ic_deepcut_title_zh_tw_hk_32dp
-        "zh-Hant-HK" -> R.drawable.ic_deepcut_title_zh_tw_hk_32dp
-        "zh-Hant-MO" -> R.drawable.ic_deepcut_title_zh_tw_hk_32dp
-        "en-US" -> R.drawable.ic_deepcut_title_en_32dp
-
-        else -> R.drawable.ic_deepcut_title_en_32dp
-    }
+fun Header(float: Boolean) {
+    val elevation = animateDpAsState(if (float) 2.dp else 0.dp, label = "Elevation")
     Surface(
         Modifier
             .fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surfaceColorAtElevation(0.dp)
+        tonalElevation = elevation.value
     ) {
         Row(
             Modifier
@@ -60,7 +52,7 @@ fun Header() {
             Icon(
                 modifier = Modifier
                     .padding(start = 6.dp, end = 16.dp),
-                painter = painterResource(id = titleResourceId),
+                painter = rememberTitleResource(),
                 contentDescription = "Logo"
             )
 
@@ -85,4 +77,25 @@ fun SearchBox(modifier: Modifier = Modifier) {
             Icon(imageVector = Icons.Default.Search, contentDescription = "Search")
         }
     }
+}
+
+@Composable
+private fun rememberTitleResource(): Painter {
+    val locale = Locale.current
+    val titleResourceId = remember(locale) {
+        when (locale.toLanguageTag()) {
+            "zh-Hans-CN" -> R.drawable.ic_deepcut_title_zh_cn_32dp
+            "zh-Hant-TW", "zh-Hant-HK", "zh-Hant-MO" -> R.drawable.ic_deepcut_title_zh_tw_hk_32dp
+            "en-US" -> R.drawable.ic_deepcut_title_en_32dp
+            else -> R.drawable.ic_deepcut_title_en_32dp
+        }
+    }
+    return painterResource(titleResourceId)
+
+}
+
+@Composable
+@Preview(showBackground = true)
+private fun Preview() {
+    Header(float = true)
 }

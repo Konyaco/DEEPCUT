@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -42,8 +41,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
-import com.konyaco.deepcut.repository.model.Music
 import com.konyaco.deepcut.viewmodel.AppViewModel
 
 @Composable
@@ -60,10 +57,11 @@ fun HomeScreen(viewModel: AppViewModel) {
             Modifier
                 .fillMaxSize()
         ) {
-            Header()
+            val scrollState = rememberScrollState()
+            Header(scrollState.value > 10f)
             Column(
                 Modifier
-                    .verticalScroll(rememberScrollState())
+                    .verticalScroll(scrollState)
                     .fillMaxSize()
                     .navigationBarsPadding()
                     .padding(bottom = 60.dp)
